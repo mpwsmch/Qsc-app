@@ -1,0 +1,553 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QSC App</title>
+    <style>
+        /* --- General & Mobile-First Styles --- */
+        :root {
+            --bg-color: #1a1a1a;
+            --primary-color: #2c2c2c;
+            --secondary-color: #444;
+            --text-color: #f0f0f0;
+            --accent-color: #007bff;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+
+        html {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+
+        body {
+            padding: 1rem;
+        }
+
+
+        .hidden {
+            display: none !important;
+        }
+
+
+        #access-denied {
+            text-align: center;
+            padding: 4rem 1rem;
+            font-size: 1.2rem;
+            color: var(--danger-color);
+        }
+
+
+        /* --- App Container & Header --- */
+        #app-container h1 {
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--accent-color);
+        }
+
+
+        /* --- Notification Setup --- */
+        #notification-setup {
+            background-color: var(--secondary-color);
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+
+        #notification-setup p {
+            margin-bottom: 0.5rem;
+        }
+
+
+        #enable-notifications-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+
+        /* --- Tabs --- */
+        .tabs {
+            display: flex;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+
+        .tab-button {
+            flex: 1;
+            padding: 1rem 0.5rem;
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+
+
+        .tab-button.active {
+            background-color: var(--secondary-color);
+            border-bottom: 3px solid var(--accent-color);
+            font-weight: bold;
+        }
+        
+        .tab-button:not(:last-child) {
+            border-right: 1px solid var(--bg-color);
+        }
+
+
+        .content-section {
+            display: none;
+        }
+
+
+        .content-section.active {
+            display: block;
+        }
+
+
+        /* --- Task Cards (Timers & Checklist) --- */
+        .task-card {
+            background-color: var(--primary-color);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+
+        .task-card .label {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            flex-basis: 100%;
+        }
+
+
+        .timer-button {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: var(--success-color);
+            color: white;
+            transition: background-color 0.3s;
+        }
+
+
+        .timer-button.running {
+            background-color: var(--accent-color);
+        }
+        
+        .timer-button.expired {
+            background-color: var(--danger-color);
+            animation: flash 1s infinite alternate;
+        }
+        
+        @keyframes flash {
+            from { opacity: 1; }
+            to { opacity: 0.7; }
+        }
+
+
+        /* --- Checklist Specific Styles --- */
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            font-size: 1.1rem;
+        }
+        
+        .checklist-item input[type="checkbox"] {
+            width: 1.5rem;
+            height: 1.5rem;
+            margin-right: 1rem;
+            accent-color: var(--accent-color);
+        }
+
+
+        #manager-controls {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+        
+        .manager-button {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            border: 1px solid var(--accent-color);
+            background-color: transparent;
+            color: var(--accent-color);
+        }
+
+
+        #reset-checklist-btn {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            margin-top: 0.5rem;
+        }
+
+
+        /* --- Responsive for Larger Screens --- */
+        @media (min-width: 768px) {
+            body {
+                max-width: 600px;
+                margin: 2rem auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+
+    <!-- This section is shown for incorrect passwords -->
+    <div id="access-denied" class="hidden">
+        <h1>Access Denied</h1>
+        <p>The password you entered is incorrect.</p>
+    </div>
+
+
+    <!-- The main application container, hidden by default -->
+    <div id="app-container" class="hidden">
+        <h1>QSC App</h1>
+
+
+        <!-- Notification Handling Section -->
+        <div id="notification-setup">
+            <p id="notification-message">For reminders to work, you must enable notifications.</p>
+            <button id="enable-notifications-btn">Enable Notifications</button>
+        </div>
+
+
+        <!-- Tab Navigation -->
+        <div class="tabs">
+            <button class="tab-button active" data-tab="fries">Fries</button>
+            <button class="tab-button" data-tab="sanitizer">Sanitizer</button>
+            <button class="tab-button" data-tab="checklist">Checklist</button>
+        </div>
+
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Fries Section -->
+            <div id="fries" class="content-section active">
+                <div class="task-card">
+                    <span class="label">Left Vat</span>
+                    <button class="timer-button" id="fries-left" data-duration="180" data-label="Left Vat">Start 3:00 Timer</button>
+                </div>
+                <div class="task-card">
+                    <span class="label">Right Vat</span>
+                    <button class="timer-button" id="fries-right" data-duration="180" data-label="Right Vat">Start 3:00 Timer</button>
+                </div>
+            </div>
+
+
+            <!-- Sanitizer Section -->
+            <div id="sanitizer" class="content-section">
+                <div class="task-card">
+                    <span class="label">Front Counter Bucket</span>
+                    <button class="timer-button" id="sani-front" data-duration="7200" data-label="Front Counter Bucket">Start 2:00:00 Timer</button>
+                </div>
+                 <div class="task-card">
+                    <span class="label">Back of House Bucket</span>
+                    <button class="timer-button" id="sani-back" data-duration="7200" data-label="Back of House Bucket">Start 2:00:00 Timer</button>
+                </div>
+            </div>
+
+
+            <!-- Checklist Section -->
+            <div id="checklist" class="content-section">
+                <div class="task-card checklist-item">
+                    <input type="checkbox" id="task-1" data-task="Wipe down counters">
+                    <label for="task-1">Wipe down counters</label>
+                </div>
+                <div class="task-card checklist-item">
+                    <input type="checkbox" id="task-2" data-task="Stock napkins & condiments">
+                    <label for="task-2">Stock napkins & condiments</label>
+                </div>
+                <div class="task-card checklist-item">
+                    <input type="checkbox" id="task-3" data-task="Check & clean restrooms">
+                    <label for="task-3">Check & clean restrooms</label>
+                </div>
+                 <div class="task-card checklist-item">
+                    <input type="checkbox" id="task-4" data-task="Sweep dining area">
+                    <label for="task-4">Sweep dining area</label>
+                </div>
+
+
+                <div id="manager-controls">
+                    <button id="manager-mode-btn" class="manager-button">Manager Mode</button>
+                    <button id="reset-checklist-btn" class="manager-button hidden">Reset All Tasks</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- SECURITY & APP INITIALIZATION ---
+            const STORE_PASSWORD = 'qsc1';
+            const MANAGER_PASSWORD = 'manager1';
+            
+            const appContainer = document.getElementById('app-container');
+            const accessDenied = document.getElementById('access-denied');
+
+
+            const enteredPassword = prompt('Please enter the Store Password:');
+
+
+            if (enteredPassword === STORE_PASSWORD) {
+                appContainer.classList.remove('hidden');
+                initializeApp();
+            } else {
+                // To prevent inspection and manipulation, we can clear the body
+                // and only show the access denied message.
+                document.body.innerHTML = '';
+                document.body.appendChild(accessDenied);
+                accessDenied.classList.remove('hidden');
+            }
+
+
+            // --- MAIN APP LOGIC ---
+            function initializeApp() {
+                // --- Notification Setup ---
+                const notifyBtn = document.getElementById('enable-notifications-btn');
+                const notifyMsg = document.getElementById('notification-message');
+                const notificationSetup = document.getElementById('notification-setup');
+
+
+                // Hide button immediately if notifications are already granted
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    notificationSetup.classList.add('hidden');
+                }
+
+
+                notifyBtn.addEventListener('click', () => {
+                    if ('Notification' in window) {
+                        Notification.requestPermission().then(permission => {
+                            // Hide the setup section regardless of the choice.
+                            // The user has been prompted and made a decision.
+                            notificationSetup.classList.add('hidden');
+                        });
+                    } else {
+                        notifyMsg.textContent = 'Notifications not supported on this browser.';
+                        notifyBtn.classList.add('hidden');
+                    }
+                });
+
+
+
+
+                // --- Tab Switching Logic ---
+                const tabButtons = document.querySelectorAll('.tab-button');
+                const contentSections = document.querySelectorAll('.content-section');
+
+
+                tabButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        tabButtons.forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+
+
+                        contentSections.forEach(section => section.classList.remove('active'));
+                        document.getElementById(button.dataset.tab).classList.add('active');
+                    });
+                });
+
+
+
+
+                // --- Timer Logic ---
+                const timerButtons = document.querySelectorAll('.timer-button');
+                const timers = {}; // To store interval IDs
+
+
+                const formatTime = (seconds) => {
+                    if (isNaN(seconds) || seconds < 0) return "00:00";
+                    const h = Math.floor(seconds / 3600);
+                    const m = Math.floor((seconds % 3600) / 60);
+                    const s = Math.floor(seconds % 60);
+                    if (h > 0) {
+                        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                    }
+                    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                };
+                
+                const sendNotification = (title, body) => {
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        new Notification(title, { body });
+                    }
+                };
+
+
+                const updateTimer = (btn) => {
+                    const storageKey = `timer-end-${btn.id}`;
+                    const endTime = parseInt(localStorage.getItem(storageKey), 10);
+                    
+                    if (!endTime) return;
+
+
+                    const remaining = Math.round((endTime - Date.now()) / 1000);
+                    
+                    if (remaining > 0) {
+                        btn.textContent = formatTime(remaining);
+                        btn.classList.add('running');
+                        btn.classList.remove('expired');
+                    } else {
+                        btn.textContent = `CHANGE ${btn.dataset.label.toUpperCase()}!`;
+                        btn.classList.remove('running');
+                        btn.classList.add('expired');
+                        clearInterval(timers[btn.id]);
+                    }
+                };
+                
+                timerButtons.forEach(btn => {
+                    // Load state from localStorage on init
+                    const storageKey = `timer-end-${btn.id}`;
+                    const endTime = localStorage.getItem(storageKey);
+
+
+                    if (endTime) {
+                        // Check if a notification was missed while the page was closed
+                        const wasExpired = localStorage.getItem(`timer-expired-notified-${btn.id}`) !== 'true';
+                        
+                        if (Date.now() > parseInt(endTime, 10) && wasExpired) {
+                            sendNotification('QSC Alert!', `Time to change the ${btn.dataset.label.toLowerCase()}!`);
+                            localStorage.setItem(`timer-expired-notified-${btn.id}`, 'true');
+                        }
+
+
+                        updateTimer(btn);
+                        timers[btn.id] = setInterval(() => updateTimer(btn), 1000);
+                    }
+
+
+                    // Click event listener
+                    btn.addEventListener('click', () => {
+                        const storageKey = `timer-end-${btn.id}`;
+                        // If timer is expired or not running, start it
+                        if (!btn.classList.contains('running')) {
+                            const durationMs = parseInt(btn.dataset.duration, 10) * 1000;
+                            const newEndTime = Date.now() + durationMs;
+                            localStorage.setItem(storageKey, newEndTime);
+                            localStorage.removeItem(`timer-expired-notified-${btn.id}`);
+
+
+                            // Start the interval
+                            if (timers[btn.id]) clearInterval(timers[btn.id]);
+                            timers[btn.id] = setInterval(() => updateTimer(btn), 1000);
+                            
+                            // Initial update for immediate feedback
+                            updateTimer(btn);
+                        } 
+                        // If it's running, clicking it does nothing. User must wait or reset after expiry.
+                        else if (btn.classList.contains('expired')) {
+                            // Reset the timer
+                            localStorage.removeItem(storageKey);
+                            localStorage.removeItem(`timer-expired-notified-${btn.id}`);
+                            clearInterval(timers[btn.id]);
+                            btn.classList.remove('expired', 'running');
+                            
+                            const duration = parseInt(btn.dataset.duration, 10);
+                            const originalText = duration < 3600 ? 
+                                `Start ${formatTime(duration)} Timer` : 
+                                `Start ${formatTime(duration)} Timer`;
+                            btn.textContent = originalText;
+                        }
+                    });
+                });
+
+
+
+
+                // --- Checklist Logic ---
+                const checkboxes = document.querySelectorAll('#checklist input[type="checkbox"]');
+                const managerModeBtn = document.getElementById('manager-mode-btn');
+                const resetChecklistBtn = document.getElementById('reset-checklist-btn');
+
+
+                const saveChecklistState = () => {
+                    const state = {};
+                    checkboxes.forEach(cb => {
+                        state[cb.id] = cb.checked;
+                    });
+                    localStorage.setItem('checklistState', JSON.stringify(state));
+                };
+
+
+                const loadChecklistState = () => {
+                    const state = JSON.parse(localStorage.getItem('checklistState'));
+                    if (state) {
+                        checkboxes.forEach(cb => {
+                            cb.checked = state[cb.id] || false;
+                        });
+                    }
+                };
+
+
+                checkboxes.forEach(cb => {
+                    cb.addEventListener('change', saveChecklistState);
+                });
+                
+                managerModeBtn.addEventListener('click', () => {
+                    const password = prompt('Enter Manager Password:');
+                    if (password === MANAGER_PASSWORD) {
+                        resetChecklistBtn.classList.remove('hidden');
+                        managerModeBtn.classList.add('hidden');
+                    } else if (password) {
+                        alert('Incorrect manager password.');
+                    }
+                });
+
+
+                resetChecklistBtn.addEventListener('click', () => {
+                    if (confirm('Are you sure you want to reset all tasks for the day?')) {
+                        checkboxes.forEach(cb => {
+                            cb.checked = false;
+                        });
+                        saveChecklistState();
+                        resetChecklistBtn.classList.add('hidden');
+                        managerModeBtn.classList.remove('hidden');
+                    }
+                });
+
+
+                // Initial load from storage
+                loadChecklistState();
+            }
+        });
+    </script>
+
+
+</body>
+</html>
