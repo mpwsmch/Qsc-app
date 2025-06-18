@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QSC App</title>
+    <style>
+        /* CSS - General & Mobile-First Styles */
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --bg-color: #212529;
+            --text-color: #dee2e6;
+            --border-color: #495057;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden; /* Prevent scrolling of the main page */
+        }
+
+        #access-denied {
+            display: none;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            color: var(--warning-color);
+        }
+
+        #app-container {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            background-color: var(--dark-color);
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .tab-nav {
+            display: flex;
+            justify-content: space-around;
+            background-color: var(--dark-color);
+        }
+
+        .tab-btn {
+            flex-grow: 1;
+            padding: 1rem;
+            border: none;
+            background-color: transparent;
+            color: var(--secondary-color);
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        main {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--light-color);
+            margin-top: 0;
+        }
+
+        .btn {
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 100%;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn:disabled {
+            background-color: var(--secondary-color);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        /* Checklist Specific Styles */
+        #task-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #task-list li {
+            display: flex;
+            align-items: center;
+            background-color: var(--dark-color);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        #task-list input[type="checkbox"] {
+            width: 1.5rem;
+            height: 1.5rem;
+            margin-right: 1rem;
+            accent-color: var(--primary-color);
+        }
+
+        #task-list label {
+            flex-grow: 1;
+            transition: color 0.2s;
+        }
+
+        #task-list input[type="checkbox"]:checked + label {
+            text-decoration: line-through;
+            color: var(--secondary-color);
+        }
+        
+        .delete-task-btn {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: none; /* Hidden by default */
+        }
+        
+        .checklist-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        #edit-list-btn {
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+        }
+
+        #manager-controls {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            gap: 1rem;
+            background-color: var(--dark-color);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .manager-input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        #new-task-input {
+            flex-grow: 1;
+            padding: 0.75rem;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+        
+        /* Show delete buttons and manager controls in edit mode */
+        #checklist-tab.edit-mode .delete-task-btn {
+            display: block;
+        }
+
+        #checklist-tab.edit-mode #manager-controls {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="access-denied">Access Denied</div>
+
+    <div id="app-container">
+        <header>
+            <h1>QSC App</h1>
+        </header>
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="fries">Fries</button>
+            <button class="tab-btn" data-tab="sanitizer">Sanitizer</button>
+            <button class="tab-btn" data-tab="checklist">Checklist</button>
+        </nav>
+        <main>
+            <!-- Fries Tab -->
+            <section id="fries-tab" class="tab-content active">
+                <h2>Fry Blanching Timer</h2>
+                <button id="fry-timer-btn" class="btn btn-primary">Start Fry Blanching Process</button>
+            </section>
+
+            <!-- Sanitizer Tab -->
+            <section id="sanitizer-tab" class="tab-content">
+                <h2>Sanitizer Replacement</h2>
+                <button id="sanitizer-timer-btn" class="btn btn-primary">Start First Sanitizer Timer</button>
+                <button id="sanitizer-reset-btn" class="btn btn-danger">Stop and Reset for the Day</button>
+            </section>
+
+            <!-- Checklist Tab -->
+            <section id="checklist-tab" class="tab-content">
+                <div class="checklist-controls">
+                    <h2>Daily Tasks</h2>
+                    <button id="edit-list-btn" title="Edit List">⚙️</button>
+                </div>
+                
+                <div id="manager-controls">
+                    <div class="manager-input-group">
+                         <input type="text" id="new-task-input" placeholder="Enter new task...">
+                         <button id="add-task-btn" class="btn btn-success">Add</button>
+                    </div>
+                </div>
+
+                <ul id="task-list"></ul>
+                
+                <button id="reset-checklist-btn" class="btn btn-secondary">Reset All</button>
+            </section>
+        </main>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- CONFIGURATION ---
+    const STORE_PASSWORD = 'qsc1';
+    const MANAGER_PIN = '1234';
+    const SANITIZER_CUTOFF_HOUR = 19; // 7:00 PM
+    const FRY_TIMER_1_HOURS = 5;
+    const FRY_TIMER_2_HOURS = 2;
+    const SANITIZER_TIMER_HOURS = 2;
+
+    // --- DOM ELEMENT REFERENCES ---
+    const appContainer = document.getElementById('app-container');
+    const accessDenied = document.getElementById('access-denied');
+    
+    // Tabs
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    // Fries Tab
+    const fryTimerBtn = document.getElementById('fry-timer-btn');
+    
+    // Sanitizer Tab
+    const sanitizerTimerBtn = document.getElementById('sanitizer-timer-btn');
+    const sanitizerResetBtn = document.getElementById('sanitizer-reset-btn');
+
+    // Checklist Tab
+    const checklistTab = document.getElementById('checklist-tab');
+    const editListBtn = document.getElementById('edit-list-btn');
+    const managerControls = document.getElementById('manager-controls');
+    const newTaskInput = document.getElementById('new-task-input');
+    const addTaskBtn = document.getElementById('add-task-btn');
+    const taskList = document.getElementById('task-list');
+    const resetChecklistBtn = document.getElementById('reset-checklist-btn');
+
+    // --- STATE & LOCALSTORAGE KEYS ---
+    const LS_KEYS = {
+        FRIES: 'qsc_fryTimer',
+        SANITIZER: 'qsc_sanitizerTimer',
+        CHECKLIST: 'qsc_checklistTasks'
+    };
+    let checklistTasks = [];
+    let isManagerMode = false;
+
+    // --- HELPER FUNCTIONS ---
+    const formatTime = (date) => date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+    const sendNotification = (title, body) => {
+        if (Notification.permission === 'granted') {
+            new Notification(title, { body });
+        }
+    };
+    
+    // --- PASSWORD GATE (CORRECTED & ROBUST) ---
+    const handlePassword = () => {
+        const password = prompt("Please enter the Store Password:");
+        
+        // This check handles a canceled prompt (null) AND trims whitespace
+        if (password && password.trim() === STORE_PASSWORD) {
+            appContainer.style.display = 'flex';
+            accessDenied.style.display = 'none'; // Explicitly hide this
+            initializeApp();
+        } else {
+            // This now only runs if the password is wrong or cancelled
+            appContainer.style.display = 'none';
+            accessDenied.style.display = 'flex';
+        }
+    };
+    
+    // --- INITIALIZATION ---
+    const initializeApp = () => {
+        try {
+            // Request notification permission right after login
+            Notification.requestPermission();
+            
+            // Load data from localStorage
+            loadFryTimerState();
+            loadSanitizerTimerState();
+            loadChecklistState();
+
+            // Setup event listeners
+            setupTabListeners();
+            setupFryTimerListeners();
+            setupSanitizerTimerListeners();
+            setupChecklistListeners();
+        } catch (error) {
+            // If any error happens during init, show an alert
+            alert("A critical error occurred during app initialization: " + error.message);
+            console.error(error);
+        }
+    };
+
+    // --- TAB MANAGEMENT ---
+    const setupTabListeners = () => {
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.dataset.tab;
+
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === `${targetTab}-tab`) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+    };
+
+    // --- FRY TIMER LOGIC ---
+    const setupFryTimerListeners = () => {
+        fryTimerBtn.addEventListener('click', startFryTimer);
+    };
+
+    const startFryTimer = () => {
+        const now = new Date();
+        const firstEndTime = new Date(now.getTime() + FRY_TIMER_1_HOURS * 60 * 60 * 1000);
+        const secondEndTime = new Date(firstEndTime.getTime() + FRY_TIMER_2_HOURS * 60 * 60 * 1000);
+
+        const timerData = {
+            firstEndTime: firstEndTime.getTime(),
+            secondEndTime: secondEndTime.getTime()
+        };
+        localStorage.setItem(LS_KEYS.FRIES, JSON.stringify(timerData));
+        updateFryTimerUI(timerData);
+    };
+
+    const updateFryTimerUI = (timerData) => {
+        const now = Date.now();
+
+        if (!timerData || now >= timerData.secondEndTime) {
+            fryTimerBtn.disabled = false;
+            fryTimerBtn.textContent = 'Start Fry Blanching Process';
+            return;
+        }
+
+        fryTimerBtn.disabled = true;
+
+        if (now < timerData.firstEndTime) {
+            const timeUntilFirst = timerData.firstEndTime - now;
+            fryTimerBtn.textContent = `Process ends at ${formatTime(new Date(timerData.secondEndTime))}`;
+            setTimeout(() => {
+                sendNotification("QSC Reminder", "Time to move fries to the cooler (uncovered).");
+                updateFryTimerUI(timerData);
+            }, timeUntilFirst);
+        } else if (now < timerData.secondEndTime) {
+            const timeUntilSecond = timerData.secondEndTime - now;
+            fryTimerBtn.textContent = `COVER fries at ${formatTime(new Date(timerData.secondEndTime))}`;
+            setTimeout(() => {
+                sendNotification("QSC Reminder", "Check fry temp (35-40°F) and COVER the fries.");
+                resetFryTimer();
+            }, timeUntilSecond);
+        }
+    };
+
+    const resetFryTimer = () => {
+        localStorage.removeItem(LS_KEYS.FRIES);
+        fryTimerBtn.disabled = false;
+        fryTimerBtn.textContent = 'Start Fry Blanching Process';
+    };
+
+    const loadFryTimerState = () => {
+        const timerData = JSON.parse(localStorage.getItem(LS_KEYS.FRIES));
+        if (timerData) {
+            updateFryTimerUI(timerData);
+        }
+    };
+    
+    // --- SANITIZER TIMER LOGIC ---
+    const setupSanitizerTimerListeners = () => {
+        sanitizerTimerBtn.addEventListener('click', startSanitizerTimer);
+        sanitizerResetBtn.addEventListener('click', resetSanitizerTimer);
+    };
+
+    const startSanitizerTimer = () => {
+        const now = new Date();
+        const endTime = new Date(now.getTime() + SANITIZER_TIMER_HOURS * 60 * 60 * 1000);
+        
+        // Check if the timer would end after the cutoff time
+        if (endTime.getHours() >= SANITIZER_CUTOFF_HOUR) {
+            // *** THE FIX IS HERE: Changed SANETIZER to SANITIZER ***
+            alert(`Timer will not start if it ends after ${SANITIZER_CUTOFF_HOUR - 12}:00 PM. Resetting for the day.`);
+            resetSanitizerTimer();
+            return;
+        }
+
+        const timerData = { endTime: endTime.getTime() };
+        localStorage.setItem(LS_KEYS.SANITIZER, JSON.stringify(timerData));
+        updateSanitizerUI(timerData);
+    };
+
+    const updateSanitizerUI = (timerData) => {
+        const now = Date.now();
+
+        if (!timerData || now >= timerData.endTime) {
+            sanitizerTimerBtn.disabled = false;
+            sanitizerTimerBtn.textContent = timerData ? 'Sanitizer Replaced - Start Next 2-Hour Timer' : 'Start First Sanitizer Timer';
+            return;
+        }
+        
+        sanitizerTimerBtn.disabled = true;
+        sanitizerTimerBtn.textContent = `Next replacement due at ${formatTime(new Date(timerData.endTime))}`;
+        const timeUntilEnd = timerData.endTime - now;
+
+        setTimeout(() => {
+            sendNotification("QSC Reminder", "Time to replace the sanitizer buckets!");
+            updateSanitizerUI({ endTime: timerData.endTime });
+        }, timeUntilEnd);
+    };
+
+    const resetSanitizerTimer = () => {
+        localStorage.removeItem(LS_KEYS.SANITIZER);
+        sanitizerTimerBtn.disabled = false;
+        sanitizerTimerBtn.textContent = 'Start First Sanitizer Timer';
+    };
+
+    const loadSanitizerTimerState = () => {
+        const timerData = JSON.parse(localStorage.getItem(LS_KEYS.SANITIZER));
+        if(timerData){
+             updateSanitizerUI(timerData);
+        }
+    };
+    
+    // --- CHECKLIST LOGIC ---
+    const setupChecklistListeners = () => {
+        editListBtn.addEventListener('click', toggleManagerMode);
+        addTaskBtn.addEventListener('click', addTask);
+        newTaskInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addTask();
+        });
+        resetChecklistBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to uncheck all tasks?')) {
+                checklistTasks.forEach(task => task.checked = false);
+                saveAndRenderChecklist();
+            }
+        });
+    };
+
+    const toggleManagerMode = () => {
+        if (!isManagerMode) {
+            const pin = prompt("Enter Manager PIN:");
+            if (pin === MANAGER_PIN) {
+                isManagerMode = true;
+                editListBtn.textContent = 'Lock List';
+                checklistTab.classList.add('edit-mode');
+            } else if (pin) {
+                alert('Incorrect PIN.');
+            }
+        } else {
+            isManagerMode = false;
+            editListBtn.textContent = '⚙️';
+            checklistTab.classList.remove('edit-mode');
+        }
+    };
+
+    const renderChecklist = () => {
+        taskList.innerHTML = '';
+        checklistTasks.forEach((task, index) => {
+            const li = document.createElement('li');
+            li.dataset.index = index;
+            
+            li.innerHTML = `
+                <input type="checkbox" id="task-${index}" ${task.checked ? 'checked' : ''}>
+                <label for="task-${index}">${task.text}</label>
+                <button class="delete-task-btn" title="Delete Task">🗑️</button>
+            `;
+            
+            li.querySelector('input[type="checkbox"]').addEventListener('change', (e) => {
+                checklistTasks[index].checked = e.target.checked;
+                saveAndRenderChecklist();
+            });
+
+            li.querySelector('.delete-task-btn').addEventListener('click', () => {
+                checklistTasks.splice(index, 1);
+                saveAndRenderChecklist();
+            });
+
+            taskList.appendChild(li);
+        });
+    };
+
+    const addTask = () => {
+        const text = newTaskInput.value.trim();
+        if (text) {
+            checklistTasks.push({ text: text, checked: false });
+            newTaskInput.value = '';
+            saveAndRenderChecklist();
+        }
+    };
+
+    const saveAndRenderChecklist = () => {
+        localStorage.setItem(LS_KEYS.CHECKLIST, JSON.stringify(checklistTasks));
+        renderChecklist();
+    };
+
+    const loadChecklistState = () => {
+        const savedTasks = JSON.parse(localStorage.getItem(LS_KEYS.CHECKLIST));
+        checklistTasks = Array.isArray(savedTasks) ? savedTasks : [];
+        renderChecklist();
+    };
+
+    // --- START THE APP ---
+    handlePassword();
+});
+</script>
+
+</body>
+</html>
