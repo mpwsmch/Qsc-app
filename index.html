@@ -5,92 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QSC App (TEST)</title>
     <style>
-        /* --- General & Mobile-First Styles --- */
         :root {
-            --bg-color: #121212;
-            --primary-color: #1e1e1e;
-            --secondary-color: #2a2a2a;
-            --text-color: #e0e0e0;
-            --text-muted-color: #888;
-            --accent-color: #007bff;
-            --danger-color: #e53935;
-            --success-color: #43a047;
-            --warning-color: #fdd835;
+            --bg-color: #121212; --primary-color: #1e1e1e; --secondary-color: #2a2a2a;
+            --text-color: #e0e0e0; --text-muted-color: #888; --accent-color: #007bff;
+            --danger-color: #e53935; --success-color: #43a047; --warning-color: #fdd835;
             --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
         html { font-family: var(--font-family); background-color: var(--bg-color); color: var(--text-color); }
         body { padding: 1rem; }
         .hidden { display: none !important; }
-
         #access-denied { text-align: center; padding: 4rem 1rem; font-size: 1.2rem; color: var(--danger-color); }
-
-        /* --- App Structure --- */
         #app-container h1 { text-align: center; margin-bottom: 1rem; color: var(--accent-color); font-weight: 500; }
         .content-section h2 { font-size: 1.5rem; text-align: center; margin-bottom: 1.5rem; font-weight: 400; color: var(--text-muted-color); }
-        
-        /* --- Notification Status Bar --- */
-        #notification-status-bar {
-            background-color: var(--secondary-color);
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-        }
+        #notification-status-bar { background-color: var(--secondary-color); padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
         #notification-status-bar b { font-weight: bold; }
-        #notification-status-bar button {
-            background-color: var(--accent-color);
-            color: white; border: none; padding: 0.4rem 0.8rem;
-            border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9rem;
-        }
+        #notification-status-bar button { background-color: var(--accent-color); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
         #notification-status-text.enabled { color: var(--success-color); }
         #notification-status-text.disabled { color: var(--danger-color); }
         #notification-status-text.default { color: var(--warning-color); }
-        
-        /* --- Tabs --- */
         .tabs { display: flex; margin-bottom: 1.5rem; }
         .tab-button { flex: 1; padding: 1rem 0.5rem; background-color: var(--primary-color); color: var(--text-color); border: none; cursor: pointer; font-size: 1rem; transition: background-color 0.2s; border-bottom: 3px solid transparent; }
         .tab-button.active { background-color: var(--secondary-color); border-bottom-color: var(--accent-color); font-weight: bold; }
         .tab-button:not(:last-child) { border-right: 1px solid var(--bg-color); }
-        
         .content-section { display: none; }
         .content-section.active { display: block; }
-        
-        /* --- Shared Button Styles --- */
-        .primary-button {
-            width: 100%; padding: 1.25rem; font-size: 1.1rem; font-weight: bold;
-            border: none; border-radius: 8px; cursor: pointer;
-            background-color: var(--success-color); color: white;
-            transition: background-color 0.3s, opacity 0.3s;
-        }
+        .primary-button { width: 100%; padding: 1.25rem; font-size: 1.1rem; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; background-color: var(--success-color); color: white; transition: background-color 0.3s, opacity 0.3s; }
         .primary-button:disabled { background-color: var(--secondary-color); color: var(--text-muted-color); cursor: not-allowed; }
-        
-        .secondary-button {
-            background-color: transparent; color: var(--danger-color);
-            border: 1px solid var(--danger-color); padding: 0.75rem 1rem;
-            border-radius: 5px; cursor: pointer; margin-top: 1rem; width: 100%;
-        }
-
-        /* --- Checklist Specific Styles --- */
+        .secondary-button { background-color: transparent; color: var(--danger-color); border: 1px solid var(--danger-color); padding: 0.75rem 1rem; border-radius: 5px; cursor: pointer; margin-top: 1rem; width: 100%; }
         #checklist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
         #checklist-header h2 { margin-bottom: 0; }
         #edit-list-btn { background: none; border: none; color: var(--accent-color); font-size: 1.5rem; cursor: pointer; }
-
         #add-task-form { display: flex; margin-bottom: 1rem; }
         #new-task-input { flex-grow: 1; padding: 0.75rem; border: 1px solid var(--secondary-color); background-color: var(--bg-color); color: var(--text-color); border-radius: 5px 0 0 5px; }
         #add-task-btn { padding: 0.75rem; border: none; background-color: var(--accent-color); color: white; border-radius: 0 5px 5px 0; cursor: pointer; font-weight: bold; }
-
         .task-item { display: flex; align-items: center; background-color: var(--primary-color); padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem; }
         .task-item.checked label { text-decoration: line-through; color: var(--text-muted-color); }
         .task-item input[type="checkbox"] { width: 1.5rem; height: 1.5rem; margin-right: 1rem; accent-color: var(--accent-color); cursor: pointer; }
         .task-item label { flex-grow: 1; font-size: 1.1rem; }
         .delete-task-btn { background: none; border: none; color: var(--danger-color); font-size: 1.2rem; cursor: pointer; padding: 0 0.5rem; font-weight: bold; }
-
         @media (min-width: 768px) { body { max-width: 600px; margin: 2rem auto; } }
     </style>
 </head>
@@ -102,8 +55,8 @@
         <h1>QSC App (TEST)</h1>
 
         <div id="notification-status-bar">
-            <span>Notifications: <b id="notification-status-text">Checking...</b></span>
-            <button id="enable-notifications-btn" class="hidden">Enable</button>
+            <span>Alerts: <b id="notification-status-text">Checking...</b></span>
+            <button id="enable-notifications-btn" class="hidden">Enable Notifications</button>
         </div>
 
         <div class="tabs">
@@ -143,20 +96,20 @@
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         // --- CONFIGURATION & SECURITY ---
-        const APP_PREFIX = 'test_'; // Prevents localStorage conflicts with prod version
+        const APP_PREFIX = 'test_';
         const STORE_PASSWORD = '0'; // Test Password
         const MANAGER_PIN = '1';    // Test PIN
+        const SANITIZER_CUTOFF_HOUR = new Date().getHours() + 1; // Cutoff is the NEXT full hour
+        const FRIES_STAGE1_DURATION_MS = 20 * 1000; // 20 seconds
+        const FRIES_STAGE2_DURATION_MS = 10 * 1000; // 10 seconds
+        const SANITIZER_DURATION_MS = 15 * 1000; // 15 seconds
 
-        // --- MODIFIED VALUES FOR TESTING ---
-        const SANITIZER_CUTOFF_HOUR = new Date().getHours() + 1; // Cutoff is the NEXT full hour.
-        const FRIES_STAGE1_DURATION_MIN = 0.5;  // 30 seconds
-        const FRIES_STAGE2_DURATION_MIN = 0.25; // 15 seconds
-        const SANITIZER_DURATION_MIN = 0.4;   // 24 seconds
-        // --- END OF MODIFIED VALUES ---
-
+        // --- GLOBAL STATE & ELEMENTS ---
         const appContainer = document.getElementById('app-container');
         const accessDenied = document.getElementById('access-denied');
-        
+        let activeTimers = {};
+        let audioContext;
+
         const password = prompt('Please enter the Store Password:');
         if (password === STORE_PASSWORD) {
             appContainer.classList.remove('hidden');
@@ -168,30 +121,60 @@
         }
 
         function initializeApp() {
-            // --- NOTIFICATION HANDLING ---
+            // --- ALERTING SYSTEM (Notification & Audio Fallback) ---
             const notifyBtn = document.getElementById('enable-notifications-btn');
             const notifyStatusText = document.getElementById('notification-status-text');
+            const notificationsSupported = 'Notification' in window;
 
-            function updateNotificationStatus() {
-                if (!('Notification' in window)) {
-                    notifyStatusText.textContent = 'Not Supported';
-                    notifyStatusText.className = 'disabled';
+            function playAlertSound() {
+                if (!audioContext) {
+                    try {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    } catch (e) {
+                        console.error("Web Audio API is not supported in this browser.");
+                        return;
+                    }
+                }
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 1);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 1);
+            }
+
+            function triggerAlert(title, body) {
+                if (notificationsSupported && Notification.permission === 'granted') {
+                    new Notification(title, { body });
+                } else {
+                    playAlertSound();
+                }
+            }
+            
+            function updateAlertStatus() {
+                if (!notificationsSupported) {
+                    notifyStatusText.textContent = 'Audio Alerts Active';
+                    notifyStatusText.className = 'enabled';
                     notifyBtn.classList.add('hidden');
                     return;
                 }
                 switch (Notification.permission) {
                     case 'granted':
-                        notifyStatusText.textContent = 'Enabled';
+                        notifyStatusText.textContent = 'Notifications Enabled';
                         notifyStatusText.className = 'enabled';
                         notifyBtn.classList.add('hidden');
                         break;
                     case 'denied':
-                        notifyStatusText.textContent = 'Disabled';
+                        notifyStatusText.textContent = 'Notifications Disabled';
                         notifyStatusText.className = 'disabled';
                         notifyBtn.classList.add('hidden');
                         break;
                     default:
-                        notifyStatusText.textContent = 'Not Enabled';
+                        notifyStatusText.textContent = 'Needs Permission';
                         notifyStatusText.className = 'default';
                         notifyBtn.classList.remove('hidden');
                         break;
@@ -199,102 +182,113 @@
             }
 
             notifyBtn.addEventListener('click', () => {
-                Notification.requestPermission().then(updateNotificationStatus);
+                Notification.requestPermission().then(updateAlertStatus);
             });
 
-            // --- UTILITY FUNCTIONS ---
-            const sendNotification = (title, body) => {
-                if ('Notification' in window && Notification.permission === 'granted') {
-                    new Notification(title, { body });
-                }
-            };
+            // --- UTILITY ---
             const formatTime = (date) => date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 
-            // --- TAB SWITCHING ---
-            const tabButtons = document.querySelectorAll('.tab-button');
-            const contentSections = document.querySelectorAll('.content-section');
-            tabButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    tabButtons.forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-                    contentSections.forEach(section => section.classList.remove('active'));
-                    document.getElementById(button.dataset.tab).classList.add('active');
-                });
+            // --- TABS ---
+            document.querySelector('.tabs').addEventListener('click', (e) => {
+                if (!e.target.matches('.tab-button')) return;
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+                document.getElementById(e.target.dataset.tab).classList.add('active');
             });
+
+            // --- TIMER SCHEDULING & STATE MANAGEMENT ---
+            function scheduleTimer(id, callback, delay) {
+                if (activeTimers[id]) clearTimeout(activeTimers[id]);
+                activeTimers[id] = setTimeout(callback, delay);
+            }
 
             // --- FRIES LOGIC ---
             const friesBtn = document.getElementById('fries-btn');
             const friesResetBtn = document.getElementById('fries-reset-btn');
-            let friesState = JSON.parse(localStorage.getItem(`${APP_PREFIX}friesState`)) || {};
 
-            function updateFriesUI() {
-                if (!friesState.stage1EndTime) {
+            function updateFriesUI(state) {
+                if (!state || !state.stage1EndTime) {
                     friesBtn.disabled = false;
                     friesBtn.textContent = 'Start Fry Blanching Process';
                     friesResetBtn.classList.add('hidden');
                 } else {
                     friesBtn.disabled = true;
-                    const totalEndTime = new Date(friesState.stage2EndTime);
-                    friesBtn.textContent = `Process ends at ${formatTime(totalEndTime)}`;
+                    friesBtn.textContent = `Process ends at ${formatTime(new Date(state.stage2EndTime))}`;
                     friesResetBtn.classList.remove('hidden');
                 }
             }
 
-            function checkFriesStatus() {
-                if (!friesState.stage1EndTime) return;
+            function friesStage1Alert(state) {
+                triggerAlert('QSC Reminder', 'Time to move fries to the cooler (uncovered).');
+                state.stage1Notified = true;
+                localStorage.setItem(`${APP_PREFIX}friesState`, JSON.stringify(state));
+            }
+
+            function friesStage2Alert() {
+                triggerAlert('QSC Reminder', 'Check fry temp (35-40°F) and COVER the fries.');
+                localStorage.removeItem(`${APP_PREFIX}friesState`);
+                updateFriesUI(null);
+            }
+
+            function initializeFriesState() {
+                let state = JSON.parse(localStorage.getItem(`${APP_PREFIX}friesState`));
+                if (!state) { updateFriesUI(null); return; }
 
                 const now = Date.now();
-                if (now >= friesState.stage1EndTime && !friesState.stage1Notified) {
-                    sendNotification('QSC Reminder', 'Time to move fries to the cooler (uncovered).');
-                    friesState.stage1Notified = true;
-                    localStorage.setItem(`${APP_PREFIX}friesState`, JSON.stringify(friesState));
+                if (now >= state.stage2EndTime) {
+                    if (!state.stage2Notified) friesStage2Alert();
+                    else localStorage.removeItem(`${APP_PREFIX}friesState`);
+                    updateFriesUI(null);
+                    return;
                 }
-                if (now >= friesState.stage2EndTime) {
-                    if (!friesState.stage2Notified) {
-                       sendNotification('QSC Reminder', 'Check fry temp (35-40°F) and COVER the fries.');
-                    }
-                    friesState = {};
-                    localStorage.removeItem(`${APP_PREFIX}friesState`);
-                    updateFriesUI();
+
+                if (now >= state.stage1EndTime && !state.stage1Notified) {
+                    friesStage1Alert(state);
                 }
+                
+                if (!state.stage1Notified) {
+                    scheduleTimer('fries1', () => friesStage1Alert(state), state.stage1EndTime - now);
+                }
+                scheduleTimer('fries2', friesStage2Alert, state.stage2EndTime - now);
+                updateFriesUI(state);
             }
 
             friesBtn.addEventListener('click', () => {
-                const now = new Date();
-                const stage1EndTime = new Date(now.getTime() + FRIES_STAGE1_DURATION_MIN * 60000);
-                const stage2EndTime = new Date(stage1EndTime.getTime() + FRIES_STAGE2_DURATION_MIN * 60000);
-
-                friesState = {
-                    stage1EndTime: stage1EndTime.getTime(), stage2EndTime: stage2EndTime.getTime(),
-                    stage1Notified: false, stage2Notified: false
+                const now = Date.now();
+                const state = {
+                    stage1EndTime: now + FRIES_STAGE1_DURATION_MS,
+                    stage2EndTime: now + FRIES_STAGE1_DURATION_MS + FRIES_STAGE2_DURATION_MS,
+                    stage1Notified: false,
+                    stage2Notified: true, // Mark as true so it only fires if missed
                 };
-                localStorage.setItem(`${APP_PREFIX}friesState`, JSON.stringify(friesState));
-                updateFriesUI();
+                localStorage.setItem(`${APP_PREFIX}friesState`, JSON.stringify(state));
+                initializeFriesState();
             });
-            
+
             friesResetBtn.addEventListener('click', () => {
                 if (confirm('Are you sure you want to cancel the current fry blanching process?')) {
-                    friesState = {};
+                    clearTimeout(activeTimers.fries1);
+                    clearTimeout(activeTimers.fries2);
                     localStorage.removeItem(`${APP_PREFIX}friesState`);
-                    updateFriesUI();
+                    updateFriesUI(null);
                 }
             });
 
             // --- SANITIZER LOGIC ---
             const sanitizerBtn = document.getElementById('sanitizer-btn');
             const sanitizerResetBtn = document.getElementById('sanitizer-reset-btn');
-            let sanitizerState = JSON.parse(localStorage.getItem(`${APP_PREFIX}sanitizerState`)) || {};
 
-            function updateSanitizerUI() {
-                if (!sanitizerState.endTime) {
+            function updateSanitizerUI(state) {
+                if (!state || !state.endTime) {
                     sanitizerBtn.disabled = false;
                     sanitizerBtn.textContent = 'Start First Sanitizer Timer';
                     sanitizerResetBtn.classList.add('hidden');
                 } else {
                     sanitizerResetBtn.classList.remove('hidden');
-                    if (Date.now() < sanitizerState.endTime) {
+                    if (Date.now() < state.endTime) {
                         sanitizerBtn.disabled = true;
-                        sanitizerBtn.textContent = `Next replacement due at ${formatTime(new Date(sanitizerState.endTime))}`;
+                        sanitizerBtn.textContent = `Next replacement due at ${formatTime(new Date(state.endTime))}`;
                     } else {
                         sanitizerBtn.disabled = false;
                         sanitizerBtn.textContent = 'Sanitizer Replaced - Start Next 2-Hour Timer';
@@ -302,41 +296,53 @@
                 }
             }
 
-            function checkSanitizerStatus() {
-                if (!sanitizerState.endTime || sanitizerState.notified) return;
-                
-                if (Date.now() >= sanitizerState.endTime) {
-                    sendNotification('QSC Reminder', 'Time to replace the sanitizer buckets!');
-                    sanitizerState.notified = true;
-                    localStorage.setItem(`${APP_PREFIX}sanitizerState`, JSON.stringify(sanitizerState));
-                    updateSanitizerUI();
+            function sanitizerAlert() {
+                let state = JSON.parse(localStorage.getItem(`${APP_PREFIX}sanitizerState`));
+                if (state && !state.notified) {
+                    triggerAlert('QSC Reminder', 'Time to replace the sanitizer buckets!');
+                    state.notified = true;
+                    localStorage.setItem(`${APP_PREFIX}sanitizerState`, JSON.stringify(state));
+                    updateSanitizerUI(state);
                 }
+            }
+            
+            function initializeSanitizerState() {
+                let state = JSON.parse(localStorage.getItem(`${APP_PREFIX}sanitizerState`));
+                if (!state) { updateSanitizerUI(null); return; }
+
+                const now = Date.now();
+                if (now >= state.endTime) {
+                    if (!state.notified) sanitizerAlert();
+                } else {
+                    scheduleTimer('sanitizer', sanitizerAlert, state.endTime - now);
+                }
+                updateSanitizerUI(state);
             }
 
             sanitizerBtn.addEventListener('click', () => {
                 const now = new Date();
-                const nextEndTime = new Date(now.getTime() + SANITIZER_DURATION_MIN * 60000);
+                const nextEndTime = new Date(now.getTime() + SANITIZER_DURATION_MS);
 
-                if (nextEndTime.getHours() >= SANITIZER_CUTOFF_HOUR) {
+                if (nextEndTime.getHours() >= SANITIZER_CUTOFF_HOUR && nextEndTime.getHours() !== now.getHours()) {
                     alert(`TEST MODE: The next timer would end after the cutoff time (${formatTime(new Date().setHours(SANITIZER_CUTOFF_HOUR, 0, 0))}). Resetting for the next day.`);
-                    sanitizerState = {};
                     localStorage.removeItem(`${APP_PREFIX}sanitizerState`);
+                    updateSanitizerUI(null);
                 } else {
-                    sanitizerState = { endTime: nextEndTime.getTime(), notified: false };
-                    localStorage.setItem(`${APP_PREFIX}sanitizerState`, JSON.stringify(sanitizerState));
+                    const state = { endTime: nextEndTime.getTime(), notified: false };
+                    localStorage.setItem(`${APP_PREFIX}sanitizerState`, JSON.stringify(state));
+                    initializeSanitizerState();
                 }
-                updateSanitizerUI();
             });
 
             sanitizerResetBtn.addEventListener('click', () => {
                 if (confirm('Are you sure you want to stop the sanitizer timer for the day?')) {
-                    sanitizerState = {};
+                    clearTimeout(activeTimers.sanitizer);
                     localStorage.removeItem(`${APP_PREFIX}sanitizerState`);
-                    updateSanitizerUI();
+                    updateSanitizerUI(null);
                 }
             });
 
-            // --- CHECKLIST LOGIC ---
+            // --- CHECKLIST LOGIC (Unchanged from production) ---
             const editListBtn = document.getElementById('edit-list-btn');
             const addTaskForm = document.getElementById('add-task-form');
             const newTaskInput = document.getElementById('new-task-input');
@@ -348,7 +354,7 @@
                 { text: 'Stock napkins & condiments', checked: false },
                 { text: 'Check & clean restrooms', checked: false }
             ];
-
+            
             function saveTasks() { localStorage.setItem(`${APP_PREFIX}tasks`, JSON.stringify(tasks)); }
 
             function renderChecklist() {
@@ -366,14 +372,13 @@
             }
             
             checklistTasksContainer.addEventListener('click', (e) => {
-                if (e.target.matches('input[type="checkbox"]')) {
-                    const index = e.target.dataset.index;
-                    tasks[index].checked = e.target.checked;
-                    e.target.closest('.task-item').classList.toggle('checked', e.target.checked);
+                const target = e.target;
+                if (target.matches('input[type="checkbox"]')) {
+                    tasks[target.dataset.index].checked = target.checked;
+                    target.closest('.task-item').classList.toggle('checked', target.checked);
                     saveTasks();
-                } else if (e.target.matches('.delete-task-btn')) {
-                    const index = e.target.dataset.index;
-                    tasks.splice(index, 1);
+                } else if (target.matches('.delete-task-btn')) {
+                    tasks.splice(target.dataset.index, 1);
                     saveTasks();
                     renderChecklist();
                 }
@@ -415,18 +420,12 @@
                     renderChecklist();
                 }
             });
-
-            // --- INITIALIZATION & MAIN LOOP ---
-            function mainLoop() {
-                checkFriesStatus();
-                checkSanitizerStatus();
-            }
             
-            updateNotificationStatus();
-            updateFriesUI();
-            updateSanitizerUI();
+            // --- INITIAL APP STARTUP ---
+            updateAlertStatus();
+            initializeFriesState();
+            initializeSanitizerState();
             renderChecklist();
-            setInterval(mainLoop, 1000);
         }
     });
     </script>
