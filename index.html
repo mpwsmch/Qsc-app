@@ -15,6 +15,7 @@
             --accent-color: #007bff;
             --danger-color: #e53935;
             --success-color: #43a047;
+            --warning-color: #fdd835;
             --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
@@ -30,10 +31,26 @@
         #app-container h1 { text-align: center; margin-bottom: 1rem; color: var(--accent-color); font-weight: 500; }
         .content-section h2 { font-size: 1.5rem; text-align: center; margin-bottom: 1.5rem; font-weight: 400; color: var(--text-muted-color); }
         
-        /* --- Notification Setup --- */
-        #notification-setup { background-color: var(--secondary-color); padding: 0.75rem; border-radius: 8px; margin-bottom: 1.5rem; text-align: center; }
-        #notification-setup p { margin-bottom: 0.5rem; }
-        #enable-notifications-btn { background-color: var(--accent-color); color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        /* --- Notification Status Bar --- */
+        #notification-status-bar {
+            background-color: var(--secondary-color);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        #notification-status-bar b { font-weight: bold; }
+        #notification-status-bar button {
+            background-color: var(--accent-color);
+            color: white; border: none; padding: 0.4rem 0.8rem;
+            border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9rem;
+        }
+        #notification-status-text.enabled { color: var(--success-color); }
+        #notification-status-text.disabled { color: var(--danger-color); }
+        #notification-status-text.default { color: var(--warning-color); }
         
         /* --- Tabs --- */
         .tabs { display: flex; margin-bottom: 1.5rem; }
@@ -46,28 +63,17 @@
         
         /* --- Shared Button Styles --- */
         .primary-button {
-            width: 100%;
-            padding: 1.25rem;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            background-color: var(--success-color);
-            color: white;
+            width: 100%; padding: 1.25rem; font-size: 1.1rem; font-weight: bold;
+            border: none; border-radius: 8px; cursor: pointer;
+            background-color: var(--success-color); color: white;
             transition: background-color 0.3s, opacity 0.3s;
         }
         .primary-button:disabled { background-color: var(--secondary-color); color: var(--text-muted-color); cursor: not-allowed; }
         
         .secondary-button {
-            background-color: transparent;
-            color: var(--danger-color);
-            border: 1px solid var(--danger-color);
-            padding: 0.75rem 1rem;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 1rem;
-            width: 100%;
+            background-color: transparent; color: var(--danger-color);
+            border: 1px solid var(--danger-color); padding: 0.75rem 1rem;
+            border-radius: 5px; cursor: pointer; margin-top: 1rem; width: 100%;
         }
 
         /* --- Checklist Specific Styles --- */
@@ -85,24 +91,19 @@
         .task-item label { flex-grow: 1; font-size: 1.1rem; }
         .delete-task-btn { background: none; border: none; color: var(--danger-color); font-size: 1.2rem; cursor: pointer; padding: 0 0.5rem; font-weight: bold; }
 
-        /* --- Responsive for Larger Screens --- */
-        @media (min-width: 768px) {
-            body { max-width: 600px; margin: 2rem auto; }
-        }
+        @media (min-width: 768px) { body { max-width: 600px; margin: 2rem auto; } }
     </style>
 </head>
 <body>
 
-    <div id="access-denied" class="hidden">
-        <h1>Access Denied</h1>
-    </div>
+    <div id="access-denied" class="hidden"><h1>Access Denied</h1></div>
 
     <div id="app-container" class="hidden">
         <h1>QSC App (TEST)</h1>
 
-        <div id="notification-setup">
-            <p id="notification-message">For reminders to work, you must enable notifications.</p>
-            <button id="enable-notifications-btn">Enable Notifications</button>
+        <div id="notification-status-bar">
+            <span>Notifications: <b id="notification-status-text">Checking...</b></span>
+            <button id="enable-notifications-btn" class="hidden">Enable</button>
         </div>
 
         <div class="tabs">
@@ -112,20 +113,18 @@
         </div>
 
         <div class="tab-content">
-            <!-- Fries Section -->
             <div id="fries" class="content-section active">
                 <h2>Fry Blanching Timer</h2>
                 <button id="fries-btn" class="primary-button">Start Fry Blanching Process</button>
+                <button id="fries-reset-btn" class="secondary-button hidden">Cancel and Reset Process</button>
             </div>
 
-            <!-- Sanitizer Section -->
             <div id="sanitizer" class="content-section">
                 <h2>Sanitizer Replacement</h2>
                 <button id="sanitizer-btn" class="primary-button">Start First Sanitizer Timer</button>
-                <button id="sanitizer-reset-btn" class="secondary-button hidden">Stop and Reset for the Day</button>
+                <button id="sanitizer-reset-btn" class="secondary-button hidden">Cancel and Reset Timer</button>
             </div>
 
-            <!-- Checklist Section -->
             <div id="checklist" class="content-section">
                 <div id="checklist-header">
                     <h2>Daily Tasks</h2>
@@ -144,14 +143,15 @@
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         // --- CONFIGURATION & SECURITY ---
-        const STORE_PASSWORD = '0';
-        const MANAGER_PIN = '1';
-        
+        const APP_PREFIX = 'test_'; // Prevents localStorage conflicts with prod version
+        const STORE_PASSWORD = '0'; // Test Password
+        const MANAGER_PIN = '1';    // Test PIN
+
         // --- MODIFIED VALUES FOR TESTING ---
-        const SANITIZER_CUTOFF_HOUR = new Date().getHours() + 1; // Test Value: Cutoff is the NEXT full hour.
-        const FRIES_STAGE1_DURATION_MIN = 0.5;  // Test Value: 30 seconds
-        const FRIES_STAGE2_DURATION_MIN = 0.25; // Test Value: 15 seconds
-        const SANITIZER_DURATION_MIN = 0.4;   // Test Value: 24 seconds
+        const SANITIZER_CUTOFF_HOUR = new Date().getHours() + 1; // Cutoff is the NEXT full hour.
+        const FRIES_STAGE1_DURATION_MIN = 0.5;  // 30 seconds
+        const FRIES_STAGE2_DURATION_MIN = 0.25; // 15 seconds
+        const SANITIZER_DURATION_MIN = 0.4;   // 24 seconds
         // --- END OF MODIFIED VALUES ---
 
         const appContainer = document.getElementById('app-container');
@@ -168,22 +168,38 @@
         }
 
         function initializeApp() {
-            // --- GLOBAL DOM ELEMENTS ---
-            const notifyBtn = document.getElementById('enable-notifications-btn');
-            const notifyMsg = document.getElementById('notification-message');
-            const notificationSetup = document.getElementById('notification-setup');
-
             // --- NOTIFICATION HANDLING ---
-            if ('Notification' in window && Notification.permission === 'granted') {
-                notificationSetup.classList.add('hidden');
-            }
-            notifyBtn.addEventListener('click', () => {
-                if ('Notification' in window) {
-                    Notification.requestPermission().then(() => notificationSetup.classList.add('hidden'));
-                } else {
-                    notifyMsg.textContent = 'Notifications not supported on this browser.';
+            const notifyBtn = document.getElementById('enable-notifications-btn');
+            const notifyStatusText = document.getElementById('notification-status-text');
+
+            function updateNotificationStatus() {
+                if (!('Notification' in window)) {
+                    notifyStatusText.textContent = 'Not Supported';
+                    notifyStatusText.className = 'disabled';
                     notifyBtn.classList.add('hidden');
+                    return;
                 }
+                switch (Notification.permission) {
+                    case 'granted':
+                        notifyStatusText.textContent = 'Enabled';
+                        notifyStatusText.className = 'enabled';
+                        notifyBtn.classList.add('hidden');
+                        break;
+                    case 'denied':
+                        notifyStatusText.textContent = 'Disabled';
+                        notifyStatusText.className = 'disabled';
+                        notifyBtn.classList.add('hidden');
+                        break;
+                    default:
+                        notifyStatusText.textContent = 'Not Enabled';
+                        notifyStatusText.className = 'default';
+                        notifyBtn.classList.remove('hidden');
+                        break;
+                }
+            }
+
+            notifyBtn.addEventListener('click', () => {
+                Notification.requestPermission().then(updateNotificationStatus);
             });
 
             // --- UTILITY FUNCTIONS ---
@@ -208,81 +224,81 @@
 
             // --- FRIES LOGIC ---
             const friesBtn = document.getElementById('fries-btn');
-            let friesState = JSON.parse(localStorage.getItem('friesState')) || {};
+            const friesResetBtn = document.getElementById('fries-reset-btn');
+            let friesState = JSON.parse(localStorage.getItem(`${APP_PREFIX}friesState`)) || {};
 
             function updateFriesUI() {
                 if (!friesState.stage1EndTime) {
                     friesBtn.disabled = false;
                     friesBtn.textContent = 'Start Fry Blanching Process';
-                    return;
+                    friesResetBtn.classList.add('hidden');
+                } else {
+                    friesBtn.disabled = true;
+                    const totalEndTime = new Date(friesState.stage2EndTime);
+                    friesBtn.textContent = `Process ends at ${formatTime(totalEndTime)}`;
+                    friesResetBtn.classList.remove('hidden');
                 }
-                
-                friesBtn.disabled = true;
-                const totalEndTime = new Date(friesState.stage2EndTime);
-                friesBtn.textContent = `Process ends at ${formatTime(totalEndTime)}`;
             }
 
             function checkFriesStatus() {
                 if (!friesState.stage1EndTime) return;
 
                 const now = Date.now();
-
-                // Check for Stage 1 completion
                 if (now >= friesState.stage1EndTime && !friesState.stage1Notified) {
                     sendNotification('QSC Reminder', 'Time to move fries to the cooler (uncovered).');
                     friesState.stage1Notified = true;
-                    localStorage.setItem('friesState', JSON.stringify(friesState));
+                    localStorage.setItem(`${APP_PREFIX}friesState`, JSON.stringify(friesState));
                 }
-
-                // Check for Stage 2 completion
-                if (now >= friesState.stage2EndTime && !friesState.stage2Notified) {
-                    sendNotification('QSC Reminder', 'Check fry temp (35-40°F) and COVER the fries.');
-                    friesState = {}; // Reset state
-                    localStorage.removeItem('friesState');
+                if (now >= friesState.stage2EndTime) {
+                    if (!friesState.stage2Notified) {
+                       sendNotification('QSC Reminder', 'Check fry temp (35-40°F) and COVER the fries.');
+                    }
+                    friesState = {};
+                    localStorage.removeItem(`${APP_PREFIX}friesState`);
                     updateFriesUI();
                 }
             }
 
             friesBtn.addEventListener('click', () => {
-                if (friesBtn.disabled) return;
-                
                 const now = new Date();
                 const stage1EndTime = new Date(now.getTime() + FRIES_STAGE1_DURATION_MIN * 60000);
                 const stage2EndTime = new Date(stage1EndTime.getTime() + FRIES_STAGE2_DURATION_MIN * 60000);
 
                 friesState = {
-                    stage1EndTime: stage1EndTime.getTime(),
-                    stage2EndTime: stage2EndTime.getTime(),
-                    stage1Notified: false,
-                    stage2Notified: false
+                    stage1EndTime: stage1EndTime.getTime(), stage2EndTime: stage2EndTime.getTime(),
+                    stage1Notified: false, stage2Notified: false
                 };
-                localStorage.setItem('friesState', JSON.stringify(friesState));
+                localStorage.setItem(`${APP_PREFIX}friesState`, JSON.stringify(friesState));
                 updateFriesUI();
+            });
+            
+            friesResetBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to cancel the current fry blanching process?')) {
+                    friesState = {};
+                    localStorage.removeItem(`${APP_PREFIX}friesState`);
+                    updateFriesUI();
+                }
             });
 
             // --- SANITIZER LOGIC ---
             const sanitizerBtn = document.getElementById('sanitizer-btn');
             const sanitizerResetBtn = document.getElementById('sanitizer-reset-btn');
-            let sanitizerState = JSON.parse(localStorage.getItem('sanitizerState')) || {};
+            let sanitizerState = JSON.parse(localStorage.getItem(`${APP_PREFIX}sanitizerState`)) || {};
 
             function updateSanitizerUI() {
                 if (!sanitizerState.endTime) {
                     sanitizerBtn.disabled = false;
                     sanitizerBtn.textContent = 'Start First Sanitizer Timer';
                     sanitizerResetBtn.classList.add('hidden');
-                    return;
-                }
-
-                sanitizerResetBtn.classList.remove('hidden');
-                const now = Date.now();
-                const endTime = sanitizerState.endTime;
-                
-                if (now < endTime) { // Timer is running
-                    sanitizerBtn.disabled = true;
-                    sanitizerBtn.textContent = `Next replacement due at ${formatTime(new Date(endTime))}`;
-                } else { // Timer expired
-                    sanitizerBtn.disabled = false;
-                    sanitizerBtn.textContent = 'Sanitizer Replaced - Start Next 2-Hour Timer';
+                } else {
+                    sanitizerResetBtn.classList.remove('hidden');
+                    if (Date.now() < sanitizerState.endTime) {
+                        sanitizerBtn.disabled = true;
+                        sanitizerBtn.textContent = `Next replacement due at ${formatTime(new Date(sanitizerState.endTime))}`;
+                    } else {
+                        sanitizerBtn.disabled = false;
+                        sanitizerBtn.textContent = 'Sanitizer Replaced - Start Next 2-Hour Timer';
+                    }
                 }
             }
 
@@ -292,28 +308,22 @@
                 if (Date.now() >= sanitizerState.endTime) {
                     sendNotification('QSC Reminder', 'Time to replace the sanitizer buckets!');
                     sanitizerState.notified = true;
-                    localStorage.setItem('sanitizerState', JSON.stringify(sanitizerState));
-                    updateSanitizerUI(); // Update UI to enable the button
+                    localStorage.setItem(`${APP_PREFIX}sanitizerState`, JSON.stringify(sanitizerState));
+                    updateSanitizerUI();
                 }
             }
 
             sanitizerBtn.addEventListener('click', () => {
-                if (sanitizerBtn.disabled) return;
-
                 const now = new Date();
                 const nextEndTime = new Date(now.getTime() + SANITIZER_DURATION_MIN * 60000);
 
-                // Check if the next timer would end after the cutoff time
                 if (nextEndTime.getHours() >= SANITIZER_CUTOFF_HOUR) {
                     alert(`TEST MODE: The next timer would end after the cutoff time (${formatTime(new Date().setHours(SANITIZER_CUTOFF_HOUR, 0, 0))}). Resetting for the next day.`);
                     sanitizerState = {};
-                    localStorage.removeItem('sanitizerState');
+                    localStorage.removeItem(`${APP_PREFIX}sanitizerState`);
                 } else {
-                    sanitizerState = {
-                        endTime: nextEndTime.getTime(),
-                        notified: false
-                    };
-                    localStorage.setItem('sanitizerState', JSON.stringify(sanitizerState));
+                    sanitizerState = { endTime: nextEndTime.getTime(), notified: false };
+                    localStorage.setItem(`${APP_PREFIX}sanitizerState`, JSON.stringify(sanitizerState));
                 }
                 updateSanitizerUI();
             });
@@ -321,68 +331,53 @@
             sanitizerResetBtn.addEventListener('click', () => {
                 if (confirm('Are you sure you want to stop the sanitizer timer for the day?')) {
                     sanitizerState = {};
-                    localStorage.removeItem('sanitizerState');
+                    localStorage.removeItem(`${APP_PREFIX}sanitizerState`);
                     updateSanitizerUI();
                 }
             });
 
             // --- CHECKLIST LOGIC ---
-            const checklistHeader = document.getElementById('checklist-header');
             const editListBtn = document.getElementById('edit-list-btn');
             const addTaskForm = document.getElementById('add-task-form');
             const newTaskInput = document.getElementById('new-task-input');
             const checklistTasksContainer = document.getElementById('checklist-tasks');
             const resetAllTasksBtn = document.getElementById('reset-all-tasks-btn');
             let isManagerMode = false;
-            let tasks = JSON.parse(localStorage.getItem('tasks')) || [
+            let tasks = JSON.parse(localStorage.getItem(`${APP_PREFIX}tasks`)) || [
                 { text: 'Wipe down counters', checked: false },
                 { text: 'Stock napkins & condiments', checked: false },
                 { text: 'Check & clean restrooms', checked: false }
             ];
 
-            function saveTasks() {
-                localStorage.setItem('tasks', JSON.stringify(tasks));
-            }
+            function saveTasks() { localStorage.setItem(`${APP_PREFIX}tasks`, JSON.stringify(tasks)); }
 
             function renderChecklist() {
                 checklistTasksContainer.innerHTML = '';
                 tasks.forEach((task, index) => {
                     const taskItem = document.createElement('div');
                     taskItem.className = `task-item ${task.checked ? 'checked' : ''}`;
-                    
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.checked = task.checked;
-                    checkbox.id = `task-${index}`;
-                    checkbox.dataset.index = index;
-                    checkbox.addEventListener('change', (e) => {
-                        tasks[index].checked = e.target.checked;
-                        taskItem.classList.toggle('checked', e.target.checked);
-                        saveTasks();
-                    });
-
-                    const label = document.createElement('label');
-                    label.textContent = task.text;
-                    label.htmlFor = `task-${index}`;
-
-                    taskItem.appendChild(checkbox);
-                    taskItem.appendChild(label);
-                    
-                    if (isManagerMode) {
-                        const deleteBtn = document.createElement('button');
-                        deleteBtn.className = 'delete-task-btn';
-                        deleteBtn.textContent = '✖';
-                        deleteBtn.dataset.index = index;
-                        deleteBtn.addEventListener('click', (e) => {
-                            tasks.splice(index, 1);
-                            saveTasks();
-                            renderChecklist();
-                        });
-                        taskItem.appendChild(deleteBtn);
-                    }
+                    taskItem.innerHTML = `
+                        <input type="checkbox" id="task-${index}" data-index="${index}" ${task.checked ? 'checked' : ''}>
+                        <label for="task-${index}">${task.text}</label>
+                        ${isManagerMode ? `<button class="delete-task-btn" data-index="${index}">✖</button>` : ''}
+                    `;
                     checklistTasksContainer.appendChild(taskItem);
                 });
             }
+            
+            checklistTasksContainer.addEventListener('click', (e) => {
+                if (e.target.matches('input[type="checkbox"]')) {
+                    const index = e.target.dataset.index;
+                    tasks[index].checked = e.target.checked;
+                    e.target.closest('.task-item').classList.toggle('checked', e.target.checked);
+                    saveTasks();
+                } else if (e.target.matches('.delete-task-btn')) {
+                    const index = e.target.dataset.index;
+                    tasks.splice(index, 1);
+                    saveTasks();
+                    renderChecklist();
+                }
+            });
 
             editListBtn.addEventListener('click', () => {
                 if (isManagerMode) {
@@ -421,19 +416,16 @@
                 }
             });
 
-
             // --- INITIALIZATION & MAIN LOOP ---
             function mainLoop() {
                 checkFriesStatus();
                 checkSanitizerStatus();
             }
-
-            // Initial UI setup on load
+            
+            updateNotificationStatus();
             updateFriesUI();
             updateSanitizerUI();
             renderChecklist();
-
-            // Start main loop to check timers every second
             setInterval(mainLoop, 1000);
         }
     });
