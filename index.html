@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QSC App</title>
+    <title>QSC App (TEST)</title>
     <style>
         /* --- General & Mobile-First Styles --- */
         :root {
@@ -98,7 +98,7 @@
     </div>
 
     <div id="app-container" class="hidden">
-        <h1>QSC App</h1>
+        <h1>QSC App (TEST)</h1>
 
         <div id="notification-setup">
             <p id="notification-message">For reminders to work, you must enable notifications.</p>
@@ -146,10 +146,13 @@
         // --- CONFIGURATION & SECURITY ---
         const STORE_PASSWORD = 'qsc1';
         const MANAGER_PIN = '1234';
-        const SANITIZER_CUTOFF_HOUR = 19; // 7:00 PM
-        const FRIES_STAGE1_DURATION_MIN = 5 * 60; // 5 hours
-        const FRIES_STAGE2_DURATION_MIN = 2 * 60; // 2 hours
-        const SANITIZER_DURATION_MIN = 2 * 60; // 2 hours
+        
+        // --- MODIFIED VALUES FOR TESTING ---
+        const SANITIZER_CUTOFF_HOUR = new Date().getHours() + 1; // Test Value: Cutoff is the NEXT full hour.
+        const FRIES_STAGE1_DURATION_MIN = 0.5;  // Test Value: 30 seconds
+        const FRIES_STAGE2_DURATION_MIN = 0.25; // Test Value: 15 seconds
+        const SANITIZER_DURATION_MIN = 0.4;   // Test Value: 24 seconds
+        // --- END OF MODIFIED VALUES ---
 
         const appContainer = document.getElementById('app-container');
         const accessDenied = document.getElementById('access-denied');
@@ -302,7 +305,7 @@
 
                 // Check if the next timer would end after the cutoff time
                 if (nextEndTime.getHours() >= SANITIZER_CUTOFF_HOUR) {
-                    alert(`The next timer would end after ${SANITIZER_CUTOFF_HOUR}:00. Resetting for the next day.`);
+                    alert(`TEST MODE: The next timer would end after the cutoff time (${formatTime(new Date().setHours(SANITIZER_CUTOFF_HOUR, 0, 0))}). Resetting for the next day.`);
                     sanitizerState = {};
                     localStorage.removeItem('sanitizerState');
                 } else {
